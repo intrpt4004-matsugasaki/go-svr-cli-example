@@ -12,6 +12,10 @@ import (
 	"fyne.io/fyne/v2/widget"
 )
 
+type SignUpRes struct {
+	Message string `json:"message"`
+}
+
 type AuthRes struct {
 	Token   string `json:"token"`
 	Message string `json:"message"`
@@ -35,8 +39,7 @@ type ReverseRes struct {
 func main() {
 	app := app.New()
 	window := app.NewWindow("Client Program")
-	//	app.SetIcon(resourceIconPng)
-	window.Resize(fyne.NewSize(300, 0))
+	window.Resize(fyne.NewSize(450, 0))
 	window.SetMaster()
 
 	idEntry := widget.NewEntry()
@@ -140,6 +143,10 @@ func main() {
 				bodyContent.Show()
 			} else {
 				tokenLabel.SetText(res.Message)
+
+				sepContent.Hide()
+				reqContent.Hide()
+				bodyContent.Hide()
 			}
 		}),
 	)
