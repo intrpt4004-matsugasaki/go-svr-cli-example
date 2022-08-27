@@ -1,0 +1,5 @@
+[Details]
+  Icon = "icon.png"
+  Name = "Client Program"
+  ID = "go-server-client-sample"
+  Build = 1

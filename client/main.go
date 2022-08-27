@@ -37,10 +37,66 @@ type ReverseRes struct {
 }
 
 func main() {
-	app := app.New()
+	app := app.NewWithID("go-server-client-sample")
 	window := app.NewWindow("Client Program")
 	window.Resize(fyne.NewSize(450, 0))
 	window.SetMaster()
+
+	window.SetMainMenu(fyne.NewMainMenu(
+		fyne.NewMenu("Account", fyne.NewMenuItem("Sign Up", func() {
+			signupWindow := app.NewWindow("POST /signup")
+			signupWindow.Resize(fyne.NewSize(450, 0))
+
+			idEntry := widget.NewEntry()
+			idEntry.SetPlaceHolder("Enter your id ...")
+			pwEntry := widget.NewEntry()
+			pwEntry.SetPlaceHolder("Enter your password ...")
+
+			signUpForm := &widget.Form{
+				Items: []*widget.FormItem{
+					{Text: "ID", Widget: idEntry},
+					{Text: "PW", Widget: pwEntry},
+				},
+			}
+
+			statusLabel := widget.NewLabel("")
+
+			signUpContent := container.NewGridWithColumns(
+				3,
+				statusLabel,
+				widget.NewLabel(""),
+				widget.NewButton("Sign Up", func() {
+					params := url.Values{}
+					params.Add("id", idEntry.Text)
+					params.Add("pw", pwEntry.Text)
+					resp, _ := http.PostForm("http://localhost:3000/signup", params)
+					defer resp.Body.Close()
+
+					body, _ := io.ReadAll(resp.Body)
+
+					var res AuthRes
+					json.Unmarshal(body, &res)
+
+					if resp.StatusCode == http.StatusOK {
+						fyne.CurrentApp().SendNotification(&fyne.Notification{
+							Title:   "Client Program",
+							Content: "Hello " + idEntry.Text + "!  Your account is created!",
+						})
+						signupWindow.Hide()
+					} else {
+						statusLabel.SetText(res.Message)
+					}
+				}),
+			)
+
+			signupWindow.SetContent(container.NewVBox(
+				signUpForm,
+				signUpContent,
+			))
+
+			signupWindow.Show()
+		})),
+	))
 
 	idEntry := widget.NewEntry()
 	idEntry.SetPlaceHolder("Enter your id ...")
@@ -141,6 +197,11 @@ func main() {
 				sepContent.Show()
 				reqContent.Show()
 				bodyContent.Show()
+
+				fyne.CurrentApp().SendNotification(&fyne.Notification{
+					Title:   "Client Program",
+					Content: "Hello " + idEntry.Text + "!  your token is " + tokenLabel.Text + ".",
+				})
 			} else {
 				tokenLabel.SetText(res.Message)
 
