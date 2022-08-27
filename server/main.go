@@ -52,6 +52,14 @@ func main() {
 
 	/** アカウント登録 **/
 	engine.POST("/signup", func(c *gin.Context) {
+		// Id,Pw長さ検査
+		if len(c.PostForm("id")) < 4 || len(c.PostForm("pw")) < 6 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "id > 3 and pw > 5.",
+			})
+			return
+		}
+
 		// パスワードをハッシュ化
 		pwhash, _ := bcrypt.GenerateFromPassword([]byte(c.PostForm("pw")), bcrypt.DefaultCost)
 
@@ -63,7 +71,6 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": "the identifier already exists.",
 			})
-
 			return
 		}
 
@@ -80,7 +87,6 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": "bad identifier",
 			})
-
 			return
 		}
 
@@ -92,7 +98,6 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": "auth failed.",
 			})
-
 			return
 		}
 
@@ -103,9 +108,9 @@ func main() {
 		src := make([]byte, 10)
 		rand.Read(src)
 
-		const alnums = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+		const letters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 		for _, digit := range src {
-			tkn += string(alnums[int(digit)%len(alnums)])
+			tkn += string(letters[int(digit)%len(letters)])
 		}
 
 		// トークンDB登録
@@ -116,6 +121,7 @@ func main() {
 			c.JSON(http.StatusBadRequest, gin.H{
 				"message": "auth again.",
 			})
+			return
 		}
 
 		// トークン払い出し
@@ -132,7 +138,6 @@ func main() {
 			c.JSON(http.StatusForbidden, gin.H{
 				"message": "illegal token",
 			})
-
 			return
 		}
 
@@ -154,7 +159,6 @@ func main() {
 			c.JSON(http.StatusForbidden, gin.H{
 				"message": "illegal token",
 			})
-
 			return
 		}
 
@@ -171,7 +175,6 @@ func main() {
 			c.JSON(http.StatusForbidden, gin.H{
 				"message": "illegal token",
 			})
-
 			return
 		}
 

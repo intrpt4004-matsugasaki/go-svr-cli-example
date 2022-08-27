@@ -69,13 +69,24 @@ func main() {
 					params := url.Values{}
 					params.Add("id", idEntry.Text)
 					params.Add("pw", pwEntry.Text)
-					resp, _ := http.PostForm("http://localhost:3000/signup", params)
+					resp, err := http.PostForm("http://localhost:3000/signup", params)
+					if err != nil {
+						statusLabel.SetText("connect failed.")
+						return
+					}
 					defer resp.Body.Close()
 
-					body, _ := io.ReadAll(resp.Body)
+					body, err := io.ReadAll(resp.Body)
+					if err != nil {
+						statusLabel.SetText("read failed.")
+						return
+					}
 
 					var res AuthRes
-					json.Unmarshal(body, &res)
+					if err := json.Unmarshal(body, &res); err != nil {
+						statusLabel.SetText("unmarshal failed.")
+						return
+					}
 
 					if resp.StatusCode == http.StatusOK {
 						fyne.CurrentApp().SendNotification(&fyne.Notification{
@@ -124,13 +135,24 @@ func main() {
 	reqContent := container.NewGridWithColumns(
 		3,
 		widget.NewButton("GET /time", func() {
-			resp, _ := http.Get("http://localhost:3000/time?token=" + tokenLabel.Text)
+			resp, err := http.Get("http://localhost:3000/time?token=" + tokenLabel.Text)
+			if err != nil {
+				bodyArea.SetText("connect failed.")
+				return
+			}
 			defer resp.Body.Close()
 
-			body, _ := io.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				bodyArea.SetText("read failed.")
+				return
+			}
 
 			var res TimeRes
-			json.Unmarshal(body, &res)
+			if err := json.Unmarshal(body, &res); err != nil {
+				bodyArea.SetText("unmarshal failed.")
+				return
+			}
 
 			if resp.StatusCode == http.StatusOK {
 				bodyArea.SetText(res.Time)
@@ -140,13 +162,24 @@ func main() {
 		}),
 
 		widget.NewButton("GET /user-agent", func() {
-			resp, _ := http.Get("http://localhost:3000/user-agent?token=" + tokenLabel.Text)
+			resp, err := http.Get("http://localhost:3000/user-agent?token=" + tokenLabel.Text)
+			if err != nil {
+				bodyArea.SetText("connect failed.")
+				return
+			}
 			defer resp.Body.Close()
 
-			body, _ := io.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				bodyArea.SetText("read failed.")
+				return
+			}
 
 			var res UserAgentRes
-			json.Unmarshal(body, &res)
+			if err := json.Unmarshal(body, &res); err != nil {
+				bodyArea.SetText("unmarshal failed.")
+				return
+			}
 
 			if resp.StatusCode == http.StatusOK {
 				bodyArea.SetText(res.UserAgent)
@@ -158,13 +191,24 @@ func main() {
 		widget.NewButton("POST /reverse", func() {
 			params := url.Values{}
 			params.Add("text", bodyArea.Text)
-			resp, _ := http.PostForm("http://localhost:3000/reverse?token="+tokenLabel.Text, params)
+			resp, err := http.PostForm("http://localhost:3000/reverse?token="+tokenLabel.Text, params)
+			if err != nil {
+				bodyArea.SetText("connect failed.")
+				return
+			}
 			defer resp.Body.Close()
 
-			body, _ := io.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				bodyArea.SetText("read failed.")
+				return
+			}
 
 			var res ReverseRes
-			json.Unmarshal(body, &res)
+			if err := json.Unmarshal(body, &res); err != nil {
+				bodyArea.SetText("unmarshal failed.")
+				return
+			}
 
 			if resp.StatusCode == http.StatusOK {
 				bodyArea.SetText(res.Text)
@@ -183,13 +227,24 @@ func main() {
 			params := url.Values{}
 			params.Add("id", idEntry.Text)
 			params.Add("pw", pwEntry.Text)
-			resp, _ := http.PostForm("http://localhost:3000/auth", params)
+			resp, err := http.PostForm("http://localhost:3000/auth", params)
+			if err != nil {
+				tokenLabel.SetText("connect failed.")
+				return
+			}
 			defer resp.Body.Close()
 
-			body, _ := io.ReadAll(resp.Body)
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				tokenLabel.SetText("read failed.")
+				return
+			}
 
 			var res AuthRes
-			json.Unmarshal(body, &res)
+			if err := json.Unmarshal(body, &res); err != nil {
+				tokenLabel.SetText("unmarshal failed.")
+				return
+			}
 
 			if resp.StatusCode == http.StatusOK {
 				tokenLabel.SetText(res.Token)
