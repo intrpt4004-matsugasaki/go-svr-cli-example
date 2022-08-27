@@ -33,7 +33,7 @@ func main() {
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&Token{})
 
-	// 10分毎に全トークン無効化
+	// 3分毎に全トークン無効化
 	ticker := time.NewTicker(3 * time.Minute)
 	go func() {
 		for {
