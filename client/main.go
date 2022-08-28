@@ -55,6 +55,7 @@ func main() {
 	app := app.NewWithID("go-server-client-sample")
 	window := app.NewWindow("Client Program")
 	window.Resize(fyne.NewSize(450, 0))
+	window.CenterOnScreen()
 	window.SetMaster()
 
 	window.SetMainMenu(fyne.NewMainMenu(
@@ -106,7 +107,7 @@ func main() {
 					if resp.StatusCode == http.StatusOK {
 						fyne.CurrentApp().SendNotification(&fyne.Notification{
 							Title:   "Client Program",
-							Content: "Hello " + idEntry.Text + "!  Your account is created!",
+							Content: "Hello " + idEntry.Text + "!  Your account was created!",
 						})
 						signupWindow.Hide()
 					} else {
@@ -354,7 +355,7 @@ func main() {
 
 				fyne.CurrentApp().SendNotification(&fyne.Notification{
 					Title:   "Client Program",
-					Content: "Hello " + idEntry.Text + "!  your token is " + tokenLabel.Text + ".",
+					Content: "Hello " + idEntry.Text + "!  Your token is " + tokenLabel.Text + ".",
 				})
 			} else {
 				tokenLabel.SetText(res.Message)
