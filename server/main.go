@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -147,15 +148,43 @@ func main() {
 	engine.GET("/time", func(c *gin.Context) {
 		// トークン認証
 		var tokens []Token
-		if result := db.Model(&Token{}).Where("Token = ?", c.Query("token")).Find(&tokens); result.RowsAffected == 0 {
+		if result := db.Model(&Token{}).Where("Token = ?", c.Request.Header.Get("token")).Find(&tokens); result.RowsAffected == 0 {
 			c.JSON(http.StatusForbidden, gin.H{
 				"message": "illegal token",
 			})
 			return
 		}
 
+		if c.Query("format") == "unix" {
+			c.JSON(http.StatusOK, gin.H{
+				"time": strconv.FormatInt(time.Now().Unix(), 10),
+			})
+			return
+		}
+
 		c.JSON(http.StatusOK, gin.H{
-			"time": time.Now().Format("03:04:05"),
+			"time": time.Now(),
+		})
+	})
+	engine.GET("/time/:format", func(c *gin.Context) {
+		// トークン認証
+		var tokens []Token
+		if result := db.Model(&Token{}).Where("Token = ?", c.Request.Header.Get("token")).Find(&tokens); result.RowsAffected == 0 {
+			c.JSON(http.StatusForbidden, gin.H{
+				"message": "illegal token",
+			})
+			return
+		}
+
+		if c.Param("format") == "unixnano" {
+			c.JSON(http.StatusOK, gin.H{
+				"time": strconv.FormatInt(time.Now().UnixNano(), 10),
+			})
+			return
+		}
+
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "bad request",
 		})
 	})
 
@@ -168,7 +197,7 @@ func main() {
 	engine.GET("/user-agent", func(c *gin.Context) {
 		// トークン認証
 		var tokens []Token
-		if result := db.Model(&Token{}).Where("Token = ?", c.Query("token")).Find(&tokens); result.RowsAffected == 0 {
+		if result := db.Model(&Token{}).Where("Token = ?", c.Request.Header.Get("token")).Find(&tokens); result.RowsAffected == 0 {
 			c.JSON(http.StatusForbidden, gin.H{
 				"message": "illegal token",
 			})
@@ -184,7 +213,7 @@ func main() {
 	engine.POST("/reverse", func(c *gin.Context) {
 		// トークン認証
 		var tokens []Token
-		if result := db.Model(&Token{}).Where("Token = ?", c.Query("token")).Find(&tokens); result.RowsAffected == 0 {
+		if result := db.Model(&Token{}).Where("Token = ?", c.Request.Header.Get("token")).Find(&tokens); result.RowsAffected == 0 {
 			c.JSON(http.StatusForbidden, gin.H{
 				"message": "illegal token",
 			})
@@ -206,7 +235,7 @@ func main() {
 	engine.POST("/post/create", func(c *gin.Context) {
 		// トークン認証
 		var tokens []Token
-		if result := db.Model(&Token{}).Where("Token = ?", c.Query("token")).Find(&tokens); result.RowsAffected == 0 {
+		if result := db.Model(&Token{}).Where("Token = ?", c.Request.Header.Get("token")).Find(&tokens); result.RowsAffected == 0 {
 			c.JSON(http.StatusForbidden, gin.H{
 				"message": "illegal token",
 			})
@@ -245,7 +274,7 @@ func main() {
 	engine.GET("/post/all", func(c *gin.Context) {
 		// トークン認証
 		var tokens []Token
-		if result := db.Model(&Token{}).Where("Token = ?", c.Query("token")).Find(&tokens); result.RowsAffected == 0 {
+		if result := db.Model(&Token{}).Where("Token = ?", c.Request.Header.Get("token")).Find(&tokens); result.RowsAffected == 0 {
 			c.JSON(http.StatusForbidden, gin.H{
 				"message": "illegal token",
 			})

@@ -5,6 +5,7 @@ import (
 	"io"
 	"net/http"
 	"net/url"
+	"strings"
 
 	"fyne.io/fyne/v2"
 	"fyne.io/fyne/v2/app"
@@ -149,7 +150,19 @@ func main() {
 	reqContent := container.NewGridWithColumns(
 		3,
 		widget.NewButton("GET /time", func() {
-			resp, err := http.Get("http://localhost:3000/time?token=" + tokenLabel.Text)
+			req, _ := http.NewRequest("GET", "http://localhost:3000/time", nil)
+			req.Header.Set("token", tokenLabel.Text)
+
+			if bodyArea.Text == "unix" {
+				params := req.URL.Query()
+				params.Add("format", "unix")
+				req.URL.RawQuery = params.Encode()
+			} else if bodyArea.Text == "unixnano" {
+				req, _ = http.NewRequest("GET", "http://localhost:3000/time/unixnano", nil)
+				req.Header.Set("token", tokenLabel.Text)
+			}
+
+			resp, err := new(http.Client).Do(req)
 			if err != nil {
 				bodyArea.SetText("connect failed.")
 				return
@@ -176,7 +189,10 @@ func main() {
 		}),
 
 		widget.NewButton("GET /user-agent", func() {
-			resp, err := http.Get("http://localhost:3000/user-agent?token=" + tokenLabel.Text)
+			req, _ := http.NewRequest("GET", "http://localhost:3000/user-agent", nil)
+			req.Header.Set("token", tokenLabel.Text)
+
+			resp, err := new(http.Client).Do(req)
 			if err != nil {
 				bodyArea.SetText("connect failed.")
 				return
@@ -205,7 +221,12 @@ func main() {
 		widget.NewButton("POST /reverse", func() {
 			params := url.Values{}
 			params.Add("text", bodyArea.Text)
-			resp, err := http.PostForm("http://localhost:3000/reverse?token="+tokenLabel.Text, params)
+
+			req, _ := http.NewRequest("POST", "http://localhost:3000/reverse", strings.NewReader(params.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			req.Header.Set("token", tokenLabel.Text)
+
+			resp, err := new(http.Client).Do(req)
 			if err != nil {
 				bodyArea.SetText("connect failed.")
 				return
@@ -234,7 +255,12 @@ func main() {
 		widget.NewButton("POST /post/create", func() {
 			params := url.Values{}
 			params.Add("post", bodyArea.Text)
-			resp, err := http.PostForm("http://localhost:3000/post/create?token="+tokenLabel.Text, params)
+
+			req, _ := http.NewRequest("POST", "http://localhost:3000/post/create", strings.NewReader(params.Encode()))
+			req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+			req.Header.Set("token", tokenLabel.Text)
+
+			resp, err := new(http.Client).Do(req)
 			if err != nil {
 				bodyArea.SetText("connect failed.")
 				return
@@ -257,7 +283,10 @@ func main() {
 		}),
 
 		widget.NewButton("GET /post/all", func() {
-			resp, err := http.Get("http://localhost:3000/post/all?token=" + tokenLabel.Text)
+			req, _ := http.NewRequest("GET", "http://localhost:3000/post/all", nil)
+			req.Header.Set("token", tokenLabel.Text)
+
+			resp, err := new(http.Client).Do(req)
 			if err != nil {
 				bodyArea.SetText("connect failed.")
 				return
