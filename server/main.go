@@ -2,7 +2,6 @@ package main
 
 import (
 	"crypto/rand"
-	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -252,7 +251,6 @@ func main() {
 
 		// tokenからid取得
 		id := tokens[0].Identifier
-		fmt.Println(id)
 
 		// DBに登録
 		if result := db.Create(&Post{
