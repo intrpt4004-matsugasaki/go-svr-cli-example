@@ -36,6 +36,20 @@ type ReverseRes struct {
 	Message string `json:"message"`
 }
 
+type PostCreateRes struct {
+	Message string `json:"message"`
+}
+
+type PostAllRes struct {
+	Posts   []PostSubRes `json:"posts"`
+	Message string       `json:"message"`
+}
+
+type PostSubRes struct {
+	Id   string `json:"id"`
+	Post string `json:"post"`
+}
+
 func main() {
 	app := app.NewWithID("go-server-client-sample")
 	window := app.NewWindow("Client Program")
@@ -212,6 +226,62 @@ func main() {
 
 			if resp.StatusCode == http.StatusOK {
 				bodyArea.SetText(res.Text)
+			} else {
+				bodyArea.SetText(res.Message)
+			}
+		}),
+
+		widget.NewButton("POST /post/create", func() {
+			params := url.Values{}
+			params.Add("post", bodyArea.Text)
+			resp, err := http.PostForm("http://localhost:3000/post/create?token="+tokenLabel.Text, params)
+			if err != nil {
+				bodyArea.SetText("connect failed.")
+				return
+			}
+			defer resp.Body.Close()
+
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				bodyArea.SetText("read failed.")
+				return
+			}
+
+			var res PostCreateRes
+			if err := json.Unmarshal(body, &res); err != nil {
+				bodyArea.SetText("unmarshal failed.")
+				return
+			}
+
+			bodyArea.SetText(res.Message)
+		}),
+
+		widget.NewButton("GET /post/all", func() {
+			resp, err := http.Get("http://localhost:3000/post/all?token=" + tokenLabel.Text)
+			if err != nil {
+				bodyArea.SetText("connect failed.")
+				return
+			}
+			defer resp.Body.Close()
+
+			body, err := io.ReadAll(resp.Body)
+			if err != nil {
+				bodyArea.SetText("read failed.")
+				return
+			}
+
+			var res PostAllRes
+			if err := json.Unmarshal(body, &res); err != nil {
+				bodyArea.SetText("unmarshal failed.")
+				return
+			}
+
+			if resp.StatusCode == http.StatusOK {
+				bodyArea.SetText("")
+				for i := range res.Posts {
+					post := res.Posts[len(res.Posts)-1-i]
+					bodyArea.SetText(bodyArea.Text + "@" + post.Id + ": " + post.Post + "\n")
+				}
 			} else {
 				bodyArea.SetText(res.Message)
 			}

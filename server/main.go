@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/rand"
+	"fmt"
 	"log"
 	"net/http"
 	"time"
@@ -20,8 +21,19 @@ type User struct {
 
 type Token struct {
 	gorm.Model
-	Token      string `gorm:"size:255;unique;not null" binding:"required""`
 	Identifier string `gorm:"size:255;not null" binding:"required"`
+	Token      string `gorm:"size:255;unique;not null" binding:"required"`
+}
+
+type Post struct {
+	gorm.Model
+	Identifier string `gorm:"size:255;not null" binding:"required"`
+	Post       string `gorm:"size:255;not null" binding:"required"`
+}
+
+type PostResponse struct {
+	Id   string `json:"id"`
+	Post string `json:"post"`
 }
 
 func main() {
@@ -32,6 +44,7 @@ func main() {
 	}
 	db.AutoMigrate(&User{})
 	db.AutoMigrate(&Token{})
+	db.AutoMigrate(&Post{})
 
 	// 3分毎に全トークン無効化
 	ticker := time.NewTicker(3 * time.Minute)
@@ -186,6 +199,76 @@ func main() {
 
 		c.JSON(http.StatusOK, gin.H{
 			"text": string(result),
+		})
+	})
+
+	/** 呟き書き込み **/
+	engine.POST("/post/create", func(c *gin.Context) {
+		// トークン認証
+		var tokens []Token
+		if result := db.Model(&Token{}).Where("Token = ?", c.Query("token")).Find(&tokens); result.RowsAffected == 0 {
+			c.JSON(http.StatusForbidden, gin.H{
+				"message": "illegal token",
+			})
+			return
+		}
+
+		// post長さ検査
+		if len(c.PostForm("post")) < 1 {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "post > 0.",
+			})
+			return
+		}
+
+		// tokenからid取得
+		id := tokens[0].Identifier
+		fmt.Println(id)
+
+		// DBに登録
+		if result := db.Create(&Post{
+			Identifier: id,
+			Post:       c.PostForm("post"),
+		}); result.Error != nil {
+			c.JSON(http.StatusBadRequest, gin.H{
+				"message": "internal error",
+			})
+			return
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"message": "post success",
+		})
+	})
+
+	/** 呟き全取得 **/
+	engine.GET("/post/all", func(c *gin.Context) {
+		// トークン認証
+		var tokens []Token
+		if result := db.Model(&Token{}).Where("Token = ?", c.Query("token")).Find(&tokens); result.RowsAffected == 0 {
+			c.JSON(http.StatusForbidden, gin.H{
+				"message": "illegal token",
+			})
+			return
+		}
+
+		// DBから取得
+		var posts []Post
+		if result := db.Model(&Post{}).Find(&posts); result.Error != nil {
+			c.JSON(http.StatusForbidden, gin.H{
+				"message": "internal error",
+			})
+			return
+		}
+
+		postsResp := make([]PostResponse, len(posts))
+		for i, v := range posts {
+			postsResp[i].Id = v.Identifier
+			postsResp[i].Post = v.Post
+		}
+
+		c.JSON(http.StatusOK, gin.H{
+			"posts": postsResp,
 		})
 	})
 
