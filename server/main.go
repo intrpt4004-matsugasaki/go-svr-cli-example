@@ -38,7 +38,7 @@ type PostResponse struct {
 
 func main() {
 	/* DB接続 */
-	db, err := gorm.Open(mysql.Open("root:password@tcp(localhost:3306)/go_svr_cli_sample_db?parseTime=true"), &gorm.Config{})
+	db, err := gorm.Open(mysql.Open("root:password@tcp(localhost:3306)/go_svr_cli_example_db?parseTime=true"), &gorm.Config{})
 	if err != nil {
 		log.Fatal(err)
 	}
